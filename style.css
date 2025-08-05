@@ -6,19 +6,19 @@
 }
 
 :root {
-    --primary-color: #ff0050;
-    --primary-gradient: linear-gradient(135deg, #ff0050, #ff4081);
-    --secondary-color: #25d4fd;
-    --secondary-gradient: linear-gradient(135deg, #25d4fd, #00bcd4);
-    --accent-color: #9c27b0;
-    --success-color: #4caf50;
-    --warning-color: #ff9800;
-    --danger-color: #f44336;
-    --dark-bg: #1a1a1a;
+    --primary-color: #000000;
+    --primary-gradient: linear-gradient(135deg, #000000, #333333);
+    --secondary-color: #ffffff;
+    --secondary-gradient: linear-gradient(135deg, #ffffff, #f5f5f5);
+    --accent-color: #666666;
+    --success-color: #000000;
+    --warning-color: #333333;
+    --danger-color: #000000;
+    --dark-bg: #000000;
     --card-bg: #ffffff;
-    --text-primary: #2c3e50;
-    --text-secondary: #7f8c8d;
-    --border-color: #e1e5e9;
+    --text-primary: #000000;
+    --text-secondary: #666666;
+    --border-color: #cccccc;
     --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.1);
     --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.12);
     --shadow-heavy: 0 20px 60px rgba(0, 0, 0, 0.15);
@@ -28,7 +28,7 @@
 
 body {
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
     min-height: 100vh;
     line-height: 1.6;
     color: var(--text-primary);
@@ -102,10 +102,17 @@ body {
     text-align: center;
 }
 
+.hero-content p{
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    font-weight: 400;
+}
+
 .hero-title {
     font-size: clamp(2.5rem, 5vw, 4rem);
     font-weight: 800;
-    color: white;
+    color: black;
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
@@ -115,7 +122,7 @@ body {
 
 .hero-subtitle {
     font-size: 1.25rem;
-    color: rgba(255, 255, 255, 0.9);
+    color: #333333;
     margin-bottom: 3rem;
     font-weight: 400;
 }
@@ -128,6 +135,103 @@ body {
     margin: 0 auto;
 }
 
+/* Platform tabs */
+.platform-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    background: #f8f8f8;
+    padding: 5px;
+    border-radius: 10px;
+    border: 1px solid #cccccc;
+    position: relative;
+    z-index: 100;
+}
+
+.tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #666666;
+    pointer-events: auto;
+    z-index: 101;
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+
+.tab-btn:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.tab-btn.active {
+    background: var(--primary-gradient);
+    color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.tab-btn:hover:not(.active) {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary);
+    transform: scale(1.05);
+}
+
+.tab-btn:active {
+    transform: scale(0.98);
+}
+
+/* Debug: Make YouTube tab more visible */
+.tab-btn[data-platform="youtube"] {
+    border: 2px solid transparent;
+}
+
+.tab-btn[data-platform="youtube"]:hover {
+    border: 2px solid #000000;
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Platform sections */
+.platform-section {
+    display: none;
+}
+
+.platform-section.active {
+    display: block;
+}
+
+/* YouTube specific styles */
+.youtube-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.youtube-mp4 {
+    background: linear-gradient(135deg, #333333, #000000);
+}
+
+.youtube-mp3 {
+    background: linear-gradient(135deg, #666666, #333333);
+}
+
+.youtube-mp4:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.youtube-mp3:hover {
+    box-shadow: 0 4px 15px rgba(102, 102, 102, 0.4);
+}
+
 .input-section {
     display: flex;
     flex-direction: column;
@@ -138,7 +242,7 @@ body {
     display: flex;
     gap: 1rem;
     align-items: center;
-    background: #f8f9fa;
+    background: #f8f8f8;
     border-radius: 12px;
     padding: 0.5rem;
     border: 2px solid transparent;
@@ -147,7 +251,7 @@ body {
 
 .input-wrapper:focus-within {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(255, 0, 80, 0.1);
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
 }
 
 .input-icon {
@@ -262,10 +366,32 @@ body {
     border-left: 4px solid var(--danger-color);
     display: none;
     animation: slideIn 0.3s ease;
+    max-width: 100%;
+    word-wrap: break-word;
 }
 
 .error-message.show {
     display: block;
+}
+
+/* Success message styling */
+.error-message:has-text("✅") {
+    background: rgba(0, 0, 0, 0.1);
+    color: #000000;
+    border-left-color: #000000;
+}
+
+/* YouTube downloader buttons in error message */
+.error-message button {
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.error-message button:hover {
+    background: #333333 !important;
+    transform: translateY(-1px);
 }
 
 /* Video Section */
@@ -429,10 +555,10 @@ body {
     align-items: center;
     gap: 0.75rem;
     flex-wrap: wrap;
-    background: #f8f9fa;
+    background: #f8f8f8;
     padding: 15px;
     border-radius: 8px;
-    border: 1px solid #e9ecef;
+    border: 1px solid #cccccc;
     margin-bottom: 15px;
 }
 
@@ -444,7 +570,7 @@ body {
 
 .control-group label {
     font-size: 12px;
-    color: #6c757d;
+    color: #666666;
     font-weight: 500;
 }
 
@@ -454,8 +580,8 @@ body {
 }
 
 .format-btn {
-    background: #fff;
-    border: 1px solid #ced4da;
+    background: #ffffff;
+    border: 1px solid #cccccc;
     border-radius: 4px;
     padding: 6px 10px;
     cursor: pointer;
@@ -467,14 +593,14 @@ body {
 }
 
 .format-btn:hover {
-    background: #e9ecef;
-    border-color: #adb5bd;
+    background: #f0f0f0;
+    border-color: #999999;
 }
 
 .format-btn.active {
-    background: #007bff;
+    background: #000000;
     color: white;
-    border-color: #007bff;
+    border-color: #000000;
 }
 
 .format-btn.bold {

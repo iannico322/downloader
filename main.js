@@ -1,3 +1,30 @@
+// Global function for inline onclick handlers
+function switchTab(platform) {
+    console.log('Switching to platform:', platform);
+    
+    // Remove active class from all tabs and sections
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const sections = document.querySelectorAll('.platform-section');
+    
+    tabBtns.forEach(tab => tab.classList.remove('active'));
+    sections.forEach(section => section.classList.remove('active'));
+    
+    // Add active class to clicked tab
+    const activeTab = document.querySelector(`[data-platform="${platform}"]`);
+    if (activeTab) {
+        activeTab.classList.add('active');
+    }
+    
+    // Show corresponding section
+    const targetSection = document.getElementById(`${platform}Section`);
+    if (targetSection) {
+        targetSection.classList.add('active');
+        console.log('Activated section:', platform);
+    } else {
+        console.error('Section not found:', `${platform}Section`);
+    }
+}
+
 class TikTokDownloader {
     constructor() {
         this.currentVideoData = null;
@@ -7,23 +34,95 @@ class TikTokDownloader {
 
     init() {
         this.bindEvents();
+        this.initPlatformTabs();
+    }
+
+    initPlatformTabs() {
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const sections = document.querySelectorAll('.platform-section');
+
+        console.log('Found tabs:', tabBtns.length);
+        console.log('Found sections:', sections.length);
+
+        // Add multiple event listeners for better compatibility
+        tabBtns.forEach((btn, index) => {
+            // Remove any existing listeners first
+            btn.removeEventListener('click', this.handleTabClick);
+            
+            // Add click listener
+            btn.addEventListener('click', (e) => this.handleTabClick(e, btn));
+            
+            // Add mousedown as backup
+            btn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                this.handleTabClick(e, btn);
+            });
+            
+            // Add touchstart for mobile
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.handleTabClick(e, btn);
+            });
+        });
+    }
+
+    handleTabClick(e, btn) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const platform = btn.dataset.platform;
+        console.log('Tab clicked:', platform);
+        
+        // Use the global switchTab function
+        switchTab(platform);
     }
 
     bindEvents() {
         const downloadBtn = document.getElementById('downloadBtn');
         const tiktokUrl = document.getElementById('tiktokUrl');
+        const youtubeUrl = document.getElementById('youtubeUrl');
         const downloadWithoutWatermark = document.getElementById('downloadWithoutWatermark');
         const downloadWithWatermark = document.getElementById('downloadWithWatermark');
+        const downloadYoutubeMp4 = document.getElementById('downloadYoutubeMp4');
+        const downloadYoutubeMp3 = document.getElementById('downloadYoutubeMp3');
 
-        downloadBtn.addEventListener('click', () => this.handleDownload());
-        tiktokUrl.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.handleDownload();
-            }
-        });
+        // TikTok events - check if elements exist
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', () => this.handleDownload());
+        }
+        
+        if (tiktokUrl) {
+            tiktokUrl.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.handleDownload();
+                }
+            });
+        }
 
-        downloadWithoutWatermark.addEventListener('click', () => this.downloadVideo('nowm'));
-        downloadWithWatermark.addEventListener('click', () => this.downloadVideo('wm'));
+        // YouTube events - check if elements exist
+        if (youtubeUrl) {
+            youtubeUrl.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.handleYouTubeDownload('mp4');
+                }
+            });
+        }
+
+        if (downloadYoutubeMp4) {
+            downloadYoutubeMp4.addEventListener('click', () => this.handleYouTubeDownload('mp4'));
+        }
+        
+        if (downloadYoutubeMp3) {
+            downloadYoutubeMp3.addEventListener('click', () => this.handleYouTubeDownload('mp3'));
+        }
+
+        if (downloadWithoutWatermark) {
+            downloadWithoutWatermark.addEventListener('click', () => this.downloadVideo('nowm'));
+        }
+        
+        if (downloadWithWatermark) {
+            downloadWithWatermark.addEventListener('click', () => this.downloadVideo('wm'));
+        }
     }
 
     generateCaption(videoData) {
@@ -402,6 +501,21 @@ class TikTokDownloader {
         try {
             this.showLoading(true);
             
+            // Auto-copy caption when downloading
+            if (this.generatedCaption) {
+                try {
+                    await navigator.clipboard.writeText(this.generatedCaption);
+                    this.showError('📋 Caption copied to clipboard!');
+                    
+                    // Wait a moment before showing download message
+                    setTimeout(() => {
+                        this.showError('📥 Starting video download...');
+                    }, 1000);
+                } catch (clipboardError) {
+                    console.log('Clipboard copy failed, but continuing with download');
+                }
+            }
+            
             // For CORS issues, we'll open in new tab
             window.open(videoUrl, '_blank');
             
@@ -413,16 +527,16 @@ class TikTokDownloader {
                 
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = `cinesnaps_video_${Date.now()}.mp4`;
+                link.download = `DownloadeX_TikTok_${Date.now()}.mp4`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
                 
                 window.URL.revokeObjectURL(url);
-                this.showError('✅ Clean video downloaded successfully!');
+                this.showError('✅ Clean video downloaded + Caption copied!');
             } catch (corsError) {
                 console.log('Direct download blocked by CORS, opened in new tab');
-                this.showError('Video opened in new tab. Right-click and save to download.');
+                this.showError('📱 Video opened in new tab. Right-click and "Save As" to download. Caption already copied!');
             }
             
         } catch (error) {
@@ -455,6 +569,156 @@ class TikTokDownloader {
         }
     }
 
+    // YouTube download functionality with direct download
+    async handleYouTubeDownload(format) {
+        const youtubeUrl = document.getElementById('youtubeUrl').value.trim();
+        
+        if (!youtubeUrl) {
+            this.showError('Please enter a YouTube URL');
+            return;
+        }
+
+        if (!this.isValidYouTubeUrl(youtubeUrl)) {
+            this.showError('Please enter a valid YouTube URL');
+            return;
+        }
+
+        this.showLoading(true);
+        this.hideError();
+
+        try {
+            const videoId = this.extractYouTubeId(youtubeUrl);
+            
+            // Try direct download methods
+            await this.downloadYouTubeDirect(videoId, youtubeUrl, format);
+
+        } catch (error) {
+            console.error('YouTube download error:', error);
+            this.showError(`Failed to download YouTube ${format.toUpperCase()}: ${error.message}`);
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    async downloadYouTubeDirect(videoId, youtubeUrl, format) {
+        try {
+            this.showError(`🔍 Preparing ${format.toUpperCase()} download...`);
+            
+            // Since direct APIs have CORS issues, use a more reliable approach
+            // Generate downloadable link and provide user-friendly options
+            await this.generateWorkingDownload(videoId, youtubeUrl, format);
+
+        } catch (error) {
+            console.log('Download preparation failed:', error);
+            await this.generateWorkingDownload(videoId, youtubeUrl, format);
+        }
+    }
+
+    async generateWorkingDownload(videoId, youtubeUrl, format) {
+        try {
+            // Create multiple working download options
+            this.showWorkingDownloadOptions(videoId, youtubeUrl, format);
+            
+        } catch (error) {
+            this.showError('❌ Failed to prepare download. Please check the URL and try again.');
+        }
+    }
+
+    showWorkingDownloadOptions(videoId, youtubeUrl, format) {
+        const errorDiv = document.getElementById('errorMessage');
+        if (errorDiv) {
+            const quickUrl = youtubeUrl.replace('youtube.com', 'ssyoutube.com').replace('youtu.be', 'ssyoutu.be');
+            
+            errorDiv.innerHTML = `
+                <div style="text-align: left; max-width: 100%;">
+                    <p><strong>📥 ${format.toUpperCase()} Download Ready!</strong></p>
+                    
+                    <div style="background: #000000; color: white; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                        <p><strong>🚀 INSTANT DOWNLOAD (Recommended):</strong></p>
+                        <button onclick="window.open('${quickUrl}', '_blank'); navigator.clipboard.writeText('${quickUrl}')" 
+                                style="padding: 15px 25px; background: #fff; color: #000000; border: 2px solid #000000; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; margin: 5px 0;">
+                            ⚡ SS-YouTube (Click for Instant ${format.toUpperCase()} Download)
+                        </button>
+                        <small style="opacity: 0.9;">Opens direct download page - no ads, no waiting!</small>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #dee2e6;">
+                        <p><strong>📋 Quick Copy Method:</strong></p>
+                        <div style="background: #333; color: #fff; padding: 12px; border-radius: 4px; font-family: monospace; margin: 8px 0; font-size: 14px; word-break: break-all;">
+                            ${quickUrl}
+                        </div>
+                        <button onclick="navigator.clipboard.writeText('${quickUrl}'); this.textContent='✅ Copied!'; setTimeout(() => this.textContent='📋 Copy Quick Download Link', 2000)" 
+                                style="padding: 10px 20px; background: #000000; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-right: 10px;">
+                            📋 Copy Quick Download Link
+                        </button>
+                        <small style="color: #6c757d;">Paste this URL in any browser tab for instant download</small>
+                    </div>
+
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #ffeaa7;">
+                        <p><strong>🔄 Alternative Options:</strong></p>
+                        <div style="display: grid; gap: 8px;">
+                            <button onclick="window.open('https://yt1s.com/en/youtube-to-${format}?q=${youtubeUrl}', '_blank')" 
+                                    style="padding: 10px; background: #333333; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                                🎯 YT1S (${format.toUpperCase()} Converter)
+                            </button>
+                            <button onclick="window.open('https://y2mate.com/youtube/${videoId}', '_blank')" 
+                                    style="padding: 10px; background: #666666; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                                💎 Y2Mate (High Quality)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px; padding: 12px; background: #f0f0f0; border-radius: 5px; font-size: 13px; border-left: 4px solid #000000;">
+                        <strong>💡 Pro Tip:</strong> The SS-YouTube method is fastest - just click the green button above for instant access to ${format.toUpperCase()} download!
+                    </div>
+                </div>
+            `;
+            errorDiv.classList.add('show');
+        }
+    }
+
+    isValidYouTubeUrl(url) {
+        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|v\/)|youtu\.be\/|m\.youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/;
+        return youtubeRegex.test(url);
+    }
+
+    extractYouTubeId(url) {
+        // Handle various YouTube URL formats
+        const patterns = [
+            /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+            /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+            /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+            /(?:youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/,
+            /(?:m\.youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/
+        ];
+
+        for (const pattern of patterns) {
+            const match = url.match(pattern);
+            if (match) {
+                return match[1];
+            }
+        }
+
+        // If no pattern matches, try to extract from any URL parameter 'v='
+        const urlParams = new URLSearchParams(url.split('?')[1]);
+        const videoId = urlParams.get('v');
+        if (videoId && videoId.length === 11) {
+            return videoId;
+        }
+
+        return null;
+    }
+
+    downloadFile(url, filename) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
     hideVideoInfo() {
         const videoInfo = document.getElementById('videoInfo');
         if (videoInfo) {
@@ -477,7 +741,7 @@ function copyToClipboard(text) {
     });
 }
 
-// Add keyboard shortcuts
+// Auto-paste and download feature
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key === 'v') {
         const urlInput = document.getElementById('tiktokUrl');

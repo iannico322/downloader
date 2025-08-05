@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <title>TikTok Downloader - No Watermark</title>
+    <title>DownloadeX - TikTok & YouTube Downloader</title>
     <link rel="shortcut icon" href="./cineclip-logo-white.png" type="image/x-icon">
 </head>
 <body>
@@ -14,12 +14,12 @@
         <nav class="navbar">
             <div class="nav-container">
                 <div class="nav-brand">
-                    <i class="fab fa-tiktok"></i>
-                    <span>TikTok Downloader</span>
+                    <i class="fas fa-download"></i>
+                    <span>DownloadeX</span>
                 </div>
                 <div class="nav-features">
                     <span class="feature-badge">No Watermark</span>
-                    <span class="feature-badge">Auto Caption</span>
+                    <span class="feature-badge">TikTok & YouTube</span>
                     <span class="feature-badge">HD Quality</span>
                 </div>
             </div>
@@ -30,25 +30,69 @@
             <div class="hero-content">
                 <h1 class="hero-title">
                     <i class="fas fa-download"></i>
-                    Download TikTok Videos
+                    Download Videos & Music
                 </h1>
-                <p class="hero-subtitle">Download clean videos with auto-generated captions and hashtags</p>
+                <p>
+                    Created by:
+<a href="https://www.facebook.com/joana.janobas.7" target="_blank" class="hero-subtitle"> Jayzai Gwapa</a>
+                </p>
+                
+                
                 
                 <div class="download-card">
                     <div class="input-section">
-                        <div class="input-wrapper">
-                            <i class="fas fa-link input-icon"></i>
-                            <input 
-                                type="text" 
-                                id="tiktokUrl" 
-                                placeholder="Paste TikTok URL here..." 
-                                class="url-input"
-                            />
-                            <button id="downloadBtn" class="download-btn">
-                                <i class="fas fa-search"></i>
-                                <span>Analyze</span>
+                        <!-- Tab Navigation -->
+                        <div class="platform-tabs">
+                            <button class="tab-btn active" data-platform="tiktok" onclick="switchTab('tiktok')">
+                                <i class="fab fa-tiktok"></i>
+                                TikTok
+                            </button>
+                            <button class="tab-btn" data-platform="youtube" onclick="switchTab('youtube')">
+                                <i class="fab fa-youtube"></i>
+                                YouTube
                             </button>
                         </div>
+
+                        <!-- TikTok Input Section -->
+                        <div id="tiktokSection" class="platform-section active">
+                            <div class="input-wrapper">
+                                <i class="fas fa-link input-icon"></i>
+                                <input 
+                                    type="text" 
+                                    id="tiktokUrl" 
+                                    placeholder="Paste TikTok URL here..." 
+                                    class="url-input"
+                                />
+                                <button id="downloadBtn" class="download-btn">
+                                    <i class="fas fa-search"></i>
+                                    <span>Analyze</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- YouTube Input Section -->
+                        <div id="youtubeSection" class="platform-section">
+                            <div class="input-wrapper">
+                                <i class="fab fa-youtube input-icon"></i>
+                                <input 
+                                    type="text" 
+                                    id="youtubeUrl" 
+                                    placeholder="Paste YouTube URL here..." 
+                                    class="url-input"
+                                />
+                                <div class="youtube-buttons">
+                                    <button id="downloadYoutubeMp4" class="download-btn youtube-mp4">
+                                        <i class="fas fa-video"></i>
+                                        <span>MP4</span>
+                                    </button>
+                                    <button id="downloadYoutubeMp3" class="download-btn youtube-mp3">
+                                        <i class="fas fa-music"></i>
+                                        <span>MP3</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div id="errorMessage" class="error-message"></div>
                         
                         <!-- Analyzing Overlay -->
@@ -85,7 +129,7 @@
                         <i class="fas fa-download"></i>
                         <div class="btn-content">
                             <span class="btn-title">Download Video</span>
-                            <span class="btn-subtitle">No watermark + Caption</span>
+                            <span class="btn-subtitle">Auto-copies caption + No watermark</span>
                         </div>
                     </button>
                 </div>
