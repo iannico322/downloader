@@ -397,29 +397,37 @@ body {
 /* Video Section */
 .video-section {
     background: var(--card-bg);
-    margin: 2rem;
+    margin: 2rem auto;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-medium);
     overflow: hidden;
+    max-width: 800px;
+    width: 90%;
 }
 
 .video-container {
     padding: 2rem;
+    text-align: center;
 }
 
 .video-preview-card {
     position: relative;
     border-radius: 12px;
     overflow: hidden;
-    margin-bottom: 2rem;
+    margin: 0 auto 2rem auto;
     box-shadow: var(--shadow-light);
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 .preview-video {
     width: 100%;
+    max-width: 500px;
     max-height: 600px;
     object-fit: contain;
     background: #000;
+    border-radius: 12px;
 }
 
 .video-overlay {
@@ -433,23 +441,29 @@ body {
 
 .video-info {
     color: white;
+    text-align: center;
 }
 
 .video-title {
     font-size: 1.25rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
+    text-align: center;
 }
 
 .video-author {
     opacity: 0.9;
     font-size: 1rem;
+    text-align: center;
 }
 
 .download-options {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1rem;
+    justify-items: center;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .option-btn {

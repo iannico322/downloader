@@ -188,11 +188,22 @@ class TikTokDownloader {
 
     async handleDownload() {
         const urlInput = document.getElementById('tiktokUrl');
-        const url = urlInput.value.trim();
+        let url = urlInput.value.trim();
 
         if (!this.isValidTikTokUrl(url)) {
             this.showError('Please enter a valid TikTok URL');
             return;
+        }
+
+        // If it's a mobile/shortened URL, try to resolve it first
+        if (url.includes('vt.tiktok.com') || url.includes('vm.tiktok.com')) {
+            this.showError('🔄 Resolving mobile link...');
+            try {
+                url = await this.resolveMobileUrl(url);
+            } catch (error) {
+                console.log('Could not resolve mobile URL, trying original:', error);
+                // Continue with original URL if resolution fails
+            }
         }
 
         this.showAnalyzing(true);
@@ -210,6 +221,34 @@ class TikTokDownloader {
         }
     }
 
+    async resolveMobileUrl(mobileUrl) {
+        try {
+            // Try to follow redirects to get the full URL
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(mobileUrl)}`;
+            const response = await fetch(proxyUrl);
+            
+            if (response.ok) {
+                const data = await response.json();
+                // Look for canonical URL in the HTML
+                const canonicalMatch = data.contents.match(/<link[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i);
+                if (canonicalMatch && canonicalMatch[1]) {
+                    return canonicalMatch[1];
+                }
+                
+                // Look for og:url meta tag
+                const ogUrlMatch = data.contents.match(/<meta[^>]*property=["']og:url["'][^>]*content=["']([^"']+)["']/i);
+                if (ogUrlMatch && ogUrlMatch[1]) {
+                    return ogUrlMatch[1];
+                }
+            }
+            
+            return mobileUrl; // Return original if resolution fails
+        } catch (error) {
+            console.log('URL resolution failed:', error);
+            return mobileUrl; // Return original if resolution fails
+        }
+    }
+
     showAnalyzing(show) {
         const analyzingOverlay = document.getElementById('analyzingOverlay');
         if (analyzingOverlay) {
@@ -218,7 +257,8 @@ class TikTokDownloader {
     }
 
     isValidTikTokUrl(url) {
-        const tiktokRegex = /^https?:\/\/(www\.)?(tiktok\.com|vm\.tiktok\.com)/;
+        // Updated regex to handle all TikTok URL formats including mobile
+        const tiktokRegex = /^https?:\/\/(www\.)?(tiktok\.com|vm\.tiktok\.com|vt\.tiktok\.com|m\.tiktok\.com)/;
         return tiktokRegex.test(url);
     }
 
@@ -516,10 +556,7 @@ class TikTokDownloader {
                 }
             }
             
-            // For CORS issues, we'll open in new tab
-            window.open(videoUrl, '_blank');
-            
-            // Try to download directly
+            // Try to download directly without opening new tab
             try {
                 const response = await fetch(videoUrl);
                 const blob = await response.blob();
@@ -535,15 +572,43 @@ class TikTokDownloader {
                 window.URL.revokeObjectURL(url);
                 this.showError('✅ Clean video downloaded + Caption copied!');
             } catch (corsError) {
-                console.log('Direct download blocked by CORS, opened in new tab');
-                this.showError('📱 Video opened in new tab. Right-click and "Save As" to download. Caption already copied!');
+                // If direct download fails, try alternative method
+                console.log('Direct download blocked by CORS, trying alternative...');
+                
+                // Create download instructions instead of opening new tab
+                this.showDownloadInstructions(videoUrl);
             }
             
         } catch (error) {
-            this.showError('Failed to download video. Please try the link that opened in a new tab.');
+            this.showError('Failed to prepare download. Please try the instructions below.');
+            this.showDownloadInstructions(videoUrl);
             console.error('Download error:', error);
         } finally {
             this.showLoading(false);
+        }
+    }
+
+    showDownloadInstructions(videoUrl) {
+        const errorDiv = document.getElementById('errorMessage');
+        if (errorDiv) {
+            errorDiv.innerHTML = `
+                <div style="text-align: center; max-width: 100%;">
+                    <p><strong>📥 Download Instructions:</strong></p>
+                    <div style="background: #f8f8f8; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #cccccc;">
+                        <p><strong>Method 1 - Direct Link:</strong></p>
+                        <button onclick="window.open('${videoUrl}', '_blank')" 
+                                style="padding: 12px 20px; background: #000000; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin: 5px;">
+                            🎯 Open Video Link
+                        </button>
+                        <p style="font-size: 12px; color: #666666; margin-top: 5px;">Right-click on video and select "Save video as..."</p>
+                    </div>
+                    
+                    <div style="background: #f0f0f0; padding: 12px; border-radius: 5px; font-size: 13px; border-left: 4px solid #000000; margin-top: 10px;">
+                        <strong>💡 Note:</strong> Caption has been automatically copied to your clipboard!
+                    </div>
+                </div>
+            `;
+            errorDiv.classList.add('show');
         }
     }
 
